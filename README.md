@@ -53,8 +53,13 @@ python3 -m http.server 8000
 
 ## Deployment
 
-This site is published with GitHub Pages via GitHub Actions (see
-`.github/workflows/pages.yml`). Pushing to the `main` branch builds and deploys the root
-static files to the live site; `.nojekyll` ensures files are served as-is.
+This site is static and served directly from the repository root. To publish it, enable
+GitHub Pages in the repository **Settings → Pages**:
+
+- **Source:** Deploy from a branch
+- **Branch:** `main`
+- **Folder:** `/` (root)
+
+`.nojekyll` ensures files are served as-is.
 
 Expected URL: https://jacobleegithub.github.io/eponym-website/
