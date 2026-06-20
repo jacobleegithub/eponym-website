@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Mark JS as available before CSS paints so reveal hidden-states only apply with JS.
+     No-JS and full-page snapshot capture then render all content visible. -->
+<script>document.documentElement.className += " js-enabled";</script>
+<title>Eponym — 不只是發文，而是擁有自己的雜誌</title>
+<meta name="description" content="Eponym 將你的知識、觀點與作品，整理成一本真正值得閱讀的線上刊物。當內容不再被演算法淹沒，每一期都能成為你的代表作。">
+<meta property="og:title" content="Eponym — 擁有自己的雜誌">
+<meta property="og:description" content="將你的知識、觀點與作品，整理成一本真正值得閱讀的線上刊物。">
+<meta property="og:type" content="website">
+
+<!-- Traditional Chinese web fonts. Without these, CJK glyphs fall back to system
+     fonts that may be absent on clean Linux browsers and render as tofu (□).
+     display=swap keeps text visible during load; preconnect speeds up the handshake. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@700&display=swap">
+
+<style>
+  /* ============================================================
+     Eponym — Editorial landing page
+     Hand-authored, self-contained. No external assets.
+     ============================================================ */
+
+  :root {
+    --ink:        #1b1814;
+    --ink-soft:   #4a443d;
+    --ink-faint:  #8a8276;
+    --paper:      #f5f1e8;
+    --paper-2:    #ebe4d6;
+    --card:       #fffdf8;
+    --line:       #ddd4c2;
+    --sienna:     #9a4a25;
+    --sienna-dk:  #7c3a1d;
+    --slate:      #2f4f4f;
+    --gold:       #b07d2b;
+
+    --serif: 'Noto Serif TC', 'Songti TC', 'Source Han Serif TC', Georgia, 'Times New Roman', serif;
+    --sans:  'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono:  'SF Mono', ui-monospace, 'Courier New', monospace;
+
+    --maxw: 1180px;
+    --ease: cubic-bezier(.22, .61, .36, 1);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3 { font-family: var(--serif); font-weight: 700; line-height: 1.25; margin: 0; }
+
+  a { color: inherit; }
+
+  img { max-width: 100%; display: block; }
+
+  ::selection { background: var(--sienna); color: var(--paper); }
+
+  /* ---------- Accessibility ---------- */
+  :focus-visible {
+    outline: 2px solid var(--sienna);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: -999px;
+    top: 0;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 12px 18px;
+    z-index: 200;
+    border-radius: 0 0 6px 0;
+  }
+  .skip-link:focus { left: 0; }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
+
+  /* ---------- Reading progress ---------- */
+  .progress {
+    position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+    background: linear-gradient(90deg, var(--sienna), var(--gold));
+    z-index: 120; transition: width .1s linear;
+  }
+
+  /* ---------- Masthead / nav ---------- */
+  .masthead {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 18px;
+    padding: 18px clamp(20px, 5vw, 56px);
+    border-bottom: 1px solid transparent;
+    transition: background .4s var(--ease), border-color .4s var(--ease), padding .4s var(--ease);
+  }
+  .masthead.scrolled {
+    background: rgba(245, 241, 232, .9);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    padding-top: 12px; padding-bottom: 12px;
+  }
+  .wordmark {
+    font-family: var(--serif); font-weight: 700;
+    font-size: 1.5rem; letter-spacing: .26em;
+    text-decoration: none; text-transform: uppercase;
+    padding-left: .26em;
+  }
+  .masthead-meta {
+    display: flex; align-items: center; gap: 18px;
+    font-family: var(--mono); font-size: .68rem;
+    letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint);
+  }
+  .masthead-meta .issue { display: none; }
+  @media (min-width: 720px) { .masthead-meta .issue { display: inline; } }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; gap: .6em;
+    font-family: var(--sans); font-weight: 600; font-size: .98rem;
+    letter-spacing: .02em;
+    padding: 14px 26px; border-radius: 999px;
+    text-decoration: none; cursor: pointer; border: 1px solid var(--ink);
+    background: var(--ink); color: var(--paper);
+    transition: transform .25s var(--ease), background .25s var(--ease), color .25s var(--ease), box-shadow .25s var(--ease);
+  }
+  .btn:hover { background: var(--sienna); border-color: var(--sienna); transform: translateY(-2px); box-shadow: 0 10px 26px -12px rgba(120,58,29,.6); }
+  .btn .arrow { transition: transform .25s var(--ease); }
+  .btn:hover .arrow { transform: translateX(4px); }
+  .btn-sm { padding: 9px 18px; font-size: .82rem; }
+  .btn-ghost { background: transparent; color: var(--ink); }
+  .btn-ghost:hover { background: var(--ink); color: var(--paper); }
+
+  /* ---------- Layout helpers ---------- */
+  section { position: relative; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding-left: clamp(20px, 5vw, 56px); padding-right: clamp(20px, 5vw, 56px); }
+  .pad { padding-top: clamp(72px, 11vw, 150px); padding-bottom: clamp(72px, 11vw, 150px); }
+
+  .kicker {
+    font-family: var(--mono); font-size: .72rem; font-weight: 600;
+    letter-spacing: .32em; text-transform: uppercase; color: var(--sienna);
+    display: inline-flex; align-items: center; gap: .9em;
+  }
+  .kicker::before { content: ""; width: 34px; height: 1px; background: var(--sienna); display: inline-block; }
+
+  .section-head { max-width: 760px; margin-bottom: clamp(40px, 6vw, 72px); }
+  .section-head h2 {
+    font-size: clamp(2rem, 4.6vw, 3.3rem);
+    margin-top: 22px; letter-spacing: -.01em;
+  }
+  .section-head .lede { margin-top: 20px; color: var(--ink-soft); font-size: 1.12rem; max-width: 56ch; }
+
+  .rule { height: 1px; background: var(--line); border: 0; margin: 0; }
+
+  /* ---------- Reveal animation ---------- */
+  /* Reveal content is always visible. Scroll-reveal hiding was removed so that
+     content never stays blank before intersection, in any context (JS-enabled,
+     reduced-motion, no-JS, or full-page snapshots). Transition kept as harmless. */
+  .reveal, .js-enabled .reveal { opacity: 1; transform: none; transition: opacity .8s var(--ease), transform .8s var(--ease); }
+  .reveal.in { opacity: 1; transform: none; }
+  .reveal[data-delay="1"] { transition-delay: .08s; }
+  .reveal[data-delay="2"] { transition-delay: .16s; }
+  .reveal[data-delay="3"] { transition-delay: .24s; }
+  .reveal[data-delay="4"] { transition-delay: .32s; }
+
+  /* ============================================================
+     HERO / COVER
+     ============================================================ */
+  .hero {
+    min-height: 100vh; min-height: 100svh;
+    display: grid; align-items: center;
+    padding-top: 96px;
+    background:
+      radial-gradient(120% 90% at 85% 10%, rgba(176,125,43,.10), transparent 60%),
+      radial-gradient(90% 80% at 10% 100%, rgba(47,79,79,.08), transparent 55%),
+      var(--paper);
+  }
+  .hero-grid {
+    display: grid; gap: clamp(40px, 6vw, 80px); align-items: center;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 940px) { .hero-grid { grid-template-columns: 1.05fr .95fr; } }
+
+  .hero-lockup .eyebrow {
+    font-family: var(--mono); font-size: .74rem; letter-spacing: .3em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 26px;
+  }
+  .hero h1 {
+    font-size: clamp(2.5rem, 6.4vw, 4.6rem);
+    letter-spacing: -.015em;
+  }
+  .hero h1 .accent { color: var(--sienna); font-style: italic; }
+  .hero-sub {
+    margin: 30px 0 38px; font-size: clamp(1.05rem, 2vw, 1.25rem);
+    color: var(--ink-soft); max-width: 40ch; line-height: 1.75;
+  }
+  .hero-cta { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+  .hero-note { font-family: var(--mono); font-size: .72rem; letter-spacing: .12em; color: var(--ink-faint); text-transform: uppercase; }
+
+  /* Simulated magazine cover */
+  .cover {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    background:
+      linear-gradient(155deg, #233a3a 0%, #2f4f4f 45%, #3c2a1f 100%);
+    color: var(--paper);
+    border-radius: 6px;
+    padding: clamp(22px, 3vw, 34px);
+    display: flex; flex-direction: column; justify-content: space-between;
+    box-shadow: 0 40px 80px -40px rgba(27,24,20,.7), 0 2px 0 rgba(255,255,255,.04) inset;
+    overflow: hidden;
+    max-width: 460px; margin: 0 auto; width: 100%;
+    transform: rotate(1.2deg);
+    transition: transform .6s var(--ease);
+  }
+  .cover::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0 2px, transparent 2px 8px);
+    pointer-events: none;
+  }
+  .cover:hover { transform: rotate(0deg) translateY(-6px); }
+  .cover-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .cover-mast { font-family: var(--serif); font-weight: 700; font-size: 1.5rem; letter-spacing: .22em; }
+  .cover-issue { font-family: var(--mono); font-size: .62rem; letter-spacing: .16em; text-align: right; opacity: .85; line-height: 1.7; text-transform: uppercase; }
+  .cover-mid h3 { font-size: clamp(1.7rem, 4.4vw, 2.4rem); line-height: 1.2; }
+  .cover-mid p { font-size: .9rem; opacity: .8; margin-top: 12px; max-width: 24ch; }
+  .coverlines { display: grid; gap: 14px; }
+  .coverline { border-top: 1px solid rgba(245,241,232,.22); padding-top: 11px; }
+  .coverline .ck { font-family: var(--mono); font-size: .58rem; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); }
+  .coverline .ct { font-family: var(--serif); font-size: 1.02rem; display: block; margin-top: 3px; }
+
+  /* ============================================================
+     SCATTER → UNIFY
+     ============================================================ */
+  .scatter {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(2, 1fr);
+    margin-bottom: 18px;
+  }
+  @media (min-width: 720px) { .scatter { grid-template-columns: repeat(5, 1fr); } }
+  .frag {
+    background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+    padding: 22px 18px; min-height: 132px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    box-shadow: 0 8px 24px -18px rgba(27,24,20,.5);
+    transition: transform .4s var(--ease), box-shadow .4s var(--ease);
+  }
+  .frag:nth-child(odd)  { transform: rotate(-1.6deg); }
+  .frag:nth-child(even) { transform: rotate(1.4deg); }
+  .frag:hover { transform: rotate(0deg) translateY(-4px); box-shadow: 0 16px 34px -18px rgba(27,24,20,.55); }
+  .frag .platform { font-family: var(--mono); font-size: .64rem; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); }
+  .frag .what { font-family: var(--serif); font-size: 1.06rem; color: var(--ink); }
+
+  .unify {
+    margin-top: 30px;
+    background: var(--ink); color: var(--paper);
+    border-radius: 12px; padding: clamp(30px, 5vw, 54px);
+    display: grid; gap: 26px; align-items: center;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 820px) { .unify { grid-template-columns: auto 1fr; } }
+  .unify-mark {
+    font-family: var(--serif); font-weight: 700; letter-spacing: .2em;
+    border: 1px solid rgba(245,241,232,.3); border-radius: 8px;
+    padding: 22px 28px; text-align: center; white-space: nowrap;
+  }
+  .unify-mark .big { font-size: 1.7rem; display: block; }
+  .unify-mark .small { font-family: var(--mono); font-size: .6rem; letter-spacing: .26em; text-transform: uppercase; color: var(--gold); margin-top: 6px; }
+  .unify-text h3 { font-size: clamp(1.4rem, 3vw, 1.9rem); color: var(--paper); }
+  .unify-text p { color: rgba(245,241,232,.82); margin: 14px 0 0; }
+
+  /* ============================================================
+     WHY MAGAZINE (3 columns)
+     ============================================================ */
+  .why { background: var(--paper-2); }
+  .cols3 { display: grid; gap: 2px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  @media (min-width: 820px) { .cols3 { grid-template-columns: repeat(3, 1fr); } }
+  .col {
+    background: var(--paper-2); padding: clamp(28px, 4vw, 44px);
+    transition: background .4s var(--ease);
+  }
+  .col:hover { background: var(--card); }
+  .col .num { font-family: var(--mono); font-size: .78rem; letter-spacing: .2em; color: var(--sienna); }
+  .col h3 { font-size: clamp(1.4rem, 2.6vw, 1.7rem); margin: 18px 0 16px; }
+  .col p { color: var(--ink-soft); margin: 0; }
+  .col p + p { margin-top: 10px; }
+
+  /* ============================================================
+     SHOWCASE / BRAND SPREAD
+     ============================================================ */
+  .showcase-grid { display: grid; gap: clamp(40px, 6vw, 76px); align-items: center; grid-template-columns: 1fr; }
+  @media (min-width: 900px) { .showcase-grid { grid-template-columns: 1fr 1fr; } }
+  .brand-list { list-style: none; margin: 30px 0 0; padding: 0; }
+  .brand-list li {
+    display: flex; align-items: baseline; gap: 18px;
+    padding: 18px 0; border-top: 1px solid var(--line);
+    font-family: var(--serif); font-size: clamp(1.2rem, 2.4vw, 1.55rem);
+  }
+  .brand-list li:last-child { border-bottom: 1px solid var(--line); }
+  .brand-list .idx { font-family: var(--mono); font-size: .76rem; color: var(--sienna); letter-spacing: .12em; min-width: 2.4em; }
+  .showcase-close { margin-top: 30px; font-size: 1.12rem; color: var(--ink-soft); }
+  .showcase-close strong { color: var(--ink); font-family: var(--serif); }
+
+  /* Stacked covers mosaic */
+  .stack { position: relative; min-height: 440px; }
+  .mini {
+    position: absolute; width: 56%; aspect-ratio: 3/4; border-radius: 5px;
+    padding: 20px; color: var(--paper); overflow: hidden;
+    display: flex; flex-direction: column; justify-content: space-between;
+    box-shadow: 0 30px 60px -34px rgba(27,24,20,.7);
+    transition: transform .5s var(--ease);
+  }
+  .mini .m-mast { font-family: var(--serif); font-weight: 700; letter-spacing: .18em; font-size: 1.05rem; }
+  .mini .m-meta { font-family: var(--mono); font-size: .54rem; letter-spacing: .16em; text-transform: uppercase; opacity: .8; }
+  .mini .m-title { font-family: var(--serif); font-size: 1.25rem; line-height: 1.2; }
+  .mini-1 { left: 0;   top: 0;   background: linear-gradient(160deg,#2f4f4f,#1c3030); transform: rotate(-6deg); z-index: 1; }
+  .mini-2 { right: 4%; top: 8%;  background: linear-gradient(160deg,#9a4a25,#6e3115); transform: rotate(4deg); z-index: 3; }
+  .mini-3 { left: 16%; bottom: 0; background: linear-gradient(160deg,#3a3530,#1b1814); transform: rotate(-2deg); z-index: 2; }
+  .stack:hover .mini-1 { transform: rotate(-9deg) translateY(-6px); }
+  .stack:hover .mini-2 { transform: rotate(6deg) translateY(-10px); }
+  .stack:hover .mini-3 { transform: rotate(-1deg) translateY(-4px); }
+
+  /* ============================================================
+     FOR CREATORS / TABLE OF CONTENTS
+     ============================================================ */
+  .toc { background: var(--ink); color: var(--paper); }
+  .toc .kicker { color: var(--gold); }
+  .toc .kicker::before { background: var(--gold); }
+  .toc .section-head h2 { color: var(--paper); }
+  .toc .section-head .lede { color: rgba(245,241,232,.75); }
+  .toc-list { display: grid; gap: 0; }
+  .toc-item {
+    display: grid; grid-template-columns: auto 1fr auto; gap: clamp(16px, 4vw, 40px);
+    align-items: baseline;
+    padding: clamp(22px, 3.4vw, 34px) 6px;
+    border-top: 1px solid rgba(245,241,232,.16);
+    text-decoration: none;
+    transition: padding-left .4s var(--ease), background .4s var(--ease);
+  }
+  .toc-list .toc-item:last-child { border-bottom: 1px solid rgba(245,241,232,.16); }
+  .toc-item:hover, .toc-item:focus-visible { padding-left: 18px; background: rgba(245,241,232,.04); }
+  .toc-no { font-family: var(--mono); font-size: .8rem; letter-spacing: .16em; color: var(--gold); }
+  .toc-main h3 { font-size: clamp(1.4rem, 3vw, 2rem); color: var(--paper); transition: color .3s var(--ease); }
+  .toc-item:hover .toc-main h3 { color: var(--gold); }
+  .toc-main p { margin: 8px 0 0; color: rgba(245,241,232,.72); font-size: 1rem; max-width: 52ch; }
+  .toc-pg { font-family: var(--mono); font-size: .78rem; color: rgba(245,241,232,.5); letter-spacing: .12em; }
+
+  /* ============================================================
+     PUBLISHING EXPERIENCE / PAGE TABS
+     ============================================================ */
+  .reader-shell {
+    display: grid; gap: clamp(28px, 4vw, 56px);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 880px) { .reader-shell { grid-template-columns: 280px 1fr; align-items: start; } }
+
+  .tabs { display: flex; flex-direction: column; gap: 4px; }
+  @media (max-width: 879px) { .tabs { flex-direction: row; flex-wrap: wrap; } }
+  .tab {
+    font-family: var(--sans); text-align: left; cursor: pointer;
+    background: transparent; border: 0; color: var(--ink-soft);
+    padding: 16px 18px; border-left: 2px solid var(--line);
+    font-size: 1.05rem; font-weight: 500;
+    display: flex; align-items: center; gap: 12px;
+    transition: color .3s var(--ease), border-color .3s var(--ease), background .3s var(--ease);
+  }
+  @media (max-width: 879px) { .tab { border-left: 0; border-bottom: 2px solid var(--line); flex: 1 1 auto; } }
+  .tab .tab-no { font-family: var(--mono); font-size: .72rem; color: var(--ink-faint); letter-spacing: .1em; }
+  .tab[aria-selected="true"] {
+    color: var(--ink); border-color: var(--sienna); background: var(--card);
+  }
+  .tab[aria-selected="true"] .tab-no { color: var(--sienna); }
+  .tab:hover { color: var(--ink); }
+
+  .page-panel {
+    position: relative;
+    background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+    min-height: 320px; padding: clamp(28px, 4vw, 52px);
+    box-shadow: 0 30px 60px -40px rgba(27,24,20,.5);
+    overflow: hidden;
+  }
+  .page-panel::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 14px;
+    background: linear-gradient(90deg, rgba(27,24,20,.10), transparent);
+    border-right: 1px solid var(--line);
+  }
+  .panel-body[hidden] { display: none; }
+  .panel-body { animation: pageflip .55s var(--ease); }
+  @keyframes pageflip {
+    from { opacity: 0; transform: translateX(22px) rotateY(-4deg); }
+    to   { opacity: 1; transform: none; }
+  }
+  .panel-body .p-no { font-family: var(--mono); font-size: .74rem; letter-spacing: .2em; color: var(--sienna); text-transform: uppercase; }
+  .panel-body h3 { font-size: clamp(1.6rem, 3.4vw, 2.3rem); margin: 16px 0 18px; }
+  .panel-body p { color: var(--ink-soft); margin: 0; max-width: 52ch; font-size: 1.08rem; }
+  .panel-foot {
+    margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line);
+    font-family: var(--mono); font-size: .7rem; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--ink-faint);
+    display: flex; justify-content: space-between;
+  }
+  .experience-close { margin-top: clamp(36px, 5vw, 60px); text-align: center; }
+  .experience-close p { font-family: var(--serif); font-size: clamp(1.3rem, 3vw, 1.9rem); color: var(--ink); }
+
+  /* ============================================================
+     OWNERSHIP / PULL QUOTE LONGREAD
+     ============================================================ */
+  .ownership { background: var(--paper-2); }
+  .pull {
+    font-family: var(--serif); font-weight: 700;
+    font-size: clamp(1.9rem, 5vw, 3.4rem); line-height: 1.3;
+    letter-spacing: -.01em; max-width: 18ch;
+  }
+  .pull .em { color: var(--sienna); font-style: italic; }
+  .own-grid { display: grid; gap: clamp(36px, 6vw, 70px); grid-template-columns: 1fr; align-items: start; margin-top: 50px; }
+  @media (min-width: 860px) { .own-grid { grid-template-columns: 1fr 1fr; } }
+  .own-list { list-style: none; margin: 0; padding: 0; }
+  .own-list li {
+    position: relative; padding: 16px 0 16px 34px;
+    border-bottom: 1px solid var(--line); color: var(--ink); font-size: 1.12rem;
+  }
+  .own-list li::before {
+    content: "—"; position: absolute; left: 0; color: var(--sienna); font-family: var(--serif);
+  }
+  .own-close p { font-size: 1.16rem; color: var(--ink-soft); line-height: 1.8; }
+  .own-close strong { color: var(--ink); font-family: var(--serif); display: block; margin-top: 6px; font-size: 1.3rem; }
+
+  /* ============================================================
+     FINAL CTA / ENDING SPREAD
+     ============================================================ */
+  .final {
+    text-align: center; color: var(--paper);
+    background:
+      radial-gradient(100% 120% at 50% 0%, rgba(176,125,43,.22), transparent 55%),
+      linear-gradient(180deg, #241f1a, #16120e);
+  }
+  .final .kicker { color: var(--gold); justify-content: center; }
+  .final .kicker::before { background: var(--gold); }
+  .final h2 {
+    font-size: clamp(2.2rem, 6vw, 4rem); color: var(--paper);
+    margin: 26px auto 0; max-width: 16ch; letter-spacing: -.01em;
+  }
+  .final p { color: rgba(245,241,232,.8); max-width: 46ch; margin: 26px auto 38px; font-size: 1.14rem; line-height: 1.8; }
+  .final .btn { background: var(--paper); color: var(--ink); border-color: var(--paper); font-size: 1.05rem; padding: 18px 34px; }
+  .final .btn:hover { background: var(--gold); border-color: var(--gold); color: #1b1814; box-shadow: 0 16px 40px -16px rgba(176,125,43,.7); }
+
+  /* ---------- Footer ---------- */
+  footer {
+    background: #16120e; color: rgba(245,241,232,.6);
+    padding: 48px clamp(20px,5vw,56px);
+  }
+  .foot-inner {
+    max-width: var(--maxw); margin: 0 auto;
+    display: flex; flex-wrap: wrap; gap: 18px; align-items: center; justify-content: space-between;
+  }
+  .foot-mark { font-family: var(--serif); font-weight: 700; letter-spacing: .26em; color: var(--paper); font-size: 1.2rem; }
+  .foot-colophon { font-family: var(--mono); font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; }
+
+  /* ---------- Reduced motion ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: .001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .001ms !important;
+    }
+    .reveal { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#hero">跳至主要內容</a>
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<header class="masthead" id="masthead">
+  <a class="wordmark" href="#hero" aria-label="Eponym 首頁">Eponym</a>
+  <div class="masthead-meta">
+    <span class="issue">線上刊物平台 · An Editorial Platform</span>
+    <a class="btn btn-sm" href="https://eponym.light2health.tw/zh-TW/login">免費開始</a>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ===================== HERO / COVER ===================== -->
+  <section class="hero" id="hero" aria-labelledby="hero-title">
+    <div class="wrap hero-grid">
+      <div class="hero-lockup reveal in">
+        <div class="eyebrow">Eponym — 屬於你的線上刊物</div>
+        <h1 id="hero-title">不只是發文，<br>而是<span class="accent">擁有自己的雜誌</span></h1>
+        <p class="hero-sub">
+          將你的知識、觀點與作品，整理成一本真正值得閱讀的線上刊物。<br>
+          當內容不再被演算法淹沒，每一期都能成為你的代表作。
+        </p>
+        <div class="hero-cta">
+          <a class="btn" href="https://eponym.light2health.tw/zh-TW/login">
+            免費開始建立雜誌 <span class="arrow" aria-hidden="true">→</span>
+          </a>
+          <span class="hero-note">No. 01 · 創刊號</span>
+        </div>
+      </div>
+
+      <div class="hero-cover reveal" data-delay="2" aria-hidden="true">
+        <article class="cover">
+          <div class="cover-top">
+            <span class="cover-mast">Eponym</span>
+            <span class="cover-issue">No. 01<br>2026<br>Premiere</span>
+          </div>
+          <div class="cover-mid">
+            <h3>擁有<br>一本<br>自己的<br>雜誌</h3>
+            <p>當內容回到閱讀本身，每一期都是你的代表作。</p>
+          </div>
+          <div class="coverlines">
+            <div class="coverline"><span class="ck">Feature</span><span class="ct">把散落的內容，整理成刊物</span></div>
+            <div class="coverline"><span class="ck">Essay</span><span class="ct">為什麼是雜誌？</span></div>
+            <div class="coverline"><span class="ck">Index</span><span class="ct">為誰而設計</span></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ===================== YOUR CONTENT, ONE PUBLICATION ===================== -->
+  <section class="pad" aria-labelledby="unify-title">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="kicker">Your Content, One Publication</span>
+        <h2 id="unify-title">你的內容，是否散落各處？</h2>
+        <p class="lede">內容越來越多，卻沒有一個真正屬於自己的出版空間。</p>
+      </div>
+
+      <div class="scatter" role="list" aria-label="散落各處的內容平台">
+        <div class="frag reveal" role="listitem" data-delay="1"><span class="sr-only">文章發表在 Medium</span><span class="platform" aria-hidden="true">Medium</span><span class="what" aria-hidden="true">文章發表</span></div>
+        <div class="frag reveal" role="listitem" data-delay="1"><span class="sr-only">觀點分享在 LinkedIn</span><span class="platform" aria-hidden="true">LinkedIn</span><span class="what" aria-hidden="true">觀點分享</span></div>
+        <div class="frag reveal" role="listitem" data-delay="2"><span class="sr-only">照片放在 Instagram</span><span class="platform" aria-hidden="true">Instagram</span><span class="what" aria-hidden="true">照片影像</span></div>
+        <div class="frag reveal" role="listitem" data-delay="2"><span class="sr-only">短文寫在 Threads</span><span class="platform" aria-hidden="true">Threads</span><span class="what" aria-hidden="true">短文隨筆</span></div>
+        <div class="frag reveal" role="listitem" data-delay="3"><span class="sr-only">電子報寄送給訂閱者</span><span class="platform" aria-hidden="true">Newsletter</span><span class="what" aria-hidden="true">電子報訂閱</span></div>
+      </div>
+
+      <div class="unify reveal" data-delay="2">
+        <div class="unify-mark">
+          <span class="big">Eponym</span>
+          <span class="small">One Publication</span>
+        </div>
+        <div class="unify-text">
+          <h3>Eponym 將一切整合成一本刊物</h3>
+          <p>讓你的內容不再只是貼文，而是有結構、有主題、有品牌的出版作品。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== WHY MAGAZINE ===================== -->
+  <section class="why pad" aria-labelledby="why-title">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="kicker">Why Magazine</span>
+        <h2 id="why-title">為什麼是雜誌？</h2>
+      </div>
+      <div class="cols3">
+        <div class="col reveal" data-delay="1">
+          <span class="num">01</span>
+          <h3>被認真閱讀</h3>
+          <p>不再只是被滑過。</p>
+          <p>讓讀者停下來閱讀、收藏與分享真正重要的內容。</p>
+        </div>
+        <div class="col reveal" data-delay="2">
+          <span class="num">02</span>
+          <h3>建立自己的觀點</h3>
+          <p>每一期刊物都是一次完整的表達。</p>
+          <p>累積的不只是文章，而是你的思想與專業。</p>
+        </div>
+        <div class="col reveal" data-delay="3">
+          <span class="num">03</span>
+          <h3>留下長期價值</h3>
+          <p>好的內容值得被保存。</p>
+          <p>讓你的作品在數年後依然能被找到、閱讀與引用。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SHOWCASE / BRAND ===================== -->
+  <section class="pad" aria-labelledby="showcase-title">
+    <div class="wrap showcase-grid">
+      <div class="reveal">
+        <span class="kicker">Showcase</span>
+        <h2 id="showcase-title" style="font-size:clamp(2rem,4.4vw,3rem);margin-top:22px;"><span class="sr-only">一個屬於你的出版品牌</span><span aria-hidden="true">一個屬於你的<br>出版品牌</span></h2>
+        <ul class="brand-list">
+          <li><span class="idx">A1</span> 建立自己的刊名</li>
+          <li><span class="idx">A2</span> 設計專屬封面</li>
+          <li><span class="idx">A3</span> 規劃不同專題與期數</li>
+          <li><span class="idx">A4</span> 打造獨特閱讀體驗</li>
+        </ul>
+        <p class="showcase-close">
+          讓讀者記住的，不只是文章。<br>
+          <strong>而是你的刊物。</strong>
+        </p>
+      </div>
+
+      <div class="stack reveal" data-delay="2" aria-hidden="true">
+        <article class="mini mini-1">
+          <div><div class="m-mast">Atelier</div><div class="m-meta">No.04 · 設計</div></div>
+          <div class="m-title">創作的<br>第二人生</div>
+        </article>
+        <article class="mini mini-3">
+          <div><div class="m-mast">Field Notes</div><div class="m-meta">No.07 · 研究</div></div>
+          <div class="m-title">長文<br>的價值</div>
+        </article>
+        <article class="mini mini-2">
+          <div><div class="m-mast">Eponym</div><div class="m-meta">No.12 · 專題</div></div>
+          <div class="m-title">你的<br>名字<br>刊物</div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FOR CREATORS / TOC ===================== -->
+  <section class="toc pad" aria-labelledby="toc-title">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="kicker">For Creators · 目錄 Contents</span>
+        <h2 id="toc-title">為誰而設計？</h2>
+      </div>
+      <div class="toc-list">
+        <a class="toc-item reveal" data-delay="1" href="https://eponym.light2health.tw/zh-TW/login">
+          <span class="toc-no">01</span>
+          <span class="toc-main"><h3>獨立創作者</h3><p>整理創作、出版專題、建立個人品牌。</p></span>
+          <span class="toc-pg">P. 012</span>
+        </a>
+        <a class="toc-item reveal" data-delay="1" href="https://eponym.light2health.tw/zh-TW/login">
+          <span class="toc-no">02</span>
+          <span class="toc-main"><h3>專業顧問</h3><p>分享洞見、案例研究與產業觀察。</p></span>
+          <span class="toc-pg">P. 028</span>
+        </a>
+        <a class="toc-item reveal" data-delay="2" href="https://eponym.light2health.tw/zh-TW/login">
+          <span class="toc-no">03</span>
+          <span class="toc-main"><h3>攝影師與設計師</h3><p>以更完整的形式展示作品集與創作理念。</p></span>
+          <span class="toc-pg">P. 044</span>
+        </a>
+        <a class="toc-item reveal" data-delay="2" href="https://eponym.light2health.tw/zh-TW/login">
+          <span class="toc-no">04</span>
+          <span class="toc-main"><h3>研究者與學者</h3><p>發表研究成果與長篇內容，不受社群平台限制。</p></span>
+          <span class="toc-pg">P. 061</span>
+        </a>
+        <a class="toc-item reveal" data-delay="3" href="https://eponym.light2health.tw/zh-TW/login">
+          <span class="toc-no">05</span>
+          <span class="toc-main"><h3>品牌與企業</h3><p>建立自己的數位刊物，持續累積品牌資產。</p></span>
+          <span class="toc-pg">P. 080</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PUBLISHING EXPERIENCE / PAGE TABS ===================== -->
+  <section class="pad" aria-labelledby="exp-title">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="kicker">Publishing Experience</span>
+        <h2 id="exp-title">如同翻閱一本真正的刊物</h2>
+      </div>
+
+      <div class="reader-shell reveal" data-delay="1">
+        <div class="tabs" role="tablist" aria-label="閱讀體驗">
+          <button class="tab" role="tab" id="tab-1" aria-controls="panel-1" aria-selected="true">
+            <span class="tab-no">01</span> 沉浸式閱讀體驗
+          </button>
+          <button class="tab" role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false" tabindex="-1">
+            <span class="tab-no">02</span> 期刊式內容編排
+          </button>
+          <button class="tab" role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false" tabindex="-1">
+            <span class="tab-no">03</span> 全螢幕版面呈現
+          </button>
+          <button class="tab" role="tab" id="tab-4" aria-controls="panel-4" aria-selected="false" tabindex="-1">
+            <span class="tab-no">04</span> 跨裝置閱讀
+          </button>
+        </div>
+
+        <div class="page-panel">
+          <div class="panel-body" role="tabpanel" id="panel-1" aria-labelledby="tab-1">
+            <span class="p-no">Page 01</span>
+            <h3>沉浸式閱讀體驗</h3>
+            <p>移除干擾，讓讀者專注於內容本身。一頁一頁地閱讀，重新找回深度閱讀的節奏與安靜。</p>
+            <div class="panel-foot"><span>Eponym Reading</span><span>沉浸 / Immersive</span></div>
+          </div>
+          <div class="panel-body" role="tabpanel" id="panel-2" aria-labelledby="tab-2" hidden>
+            <span class="p-no">Page 02</span>
+            <h3>期刊式內容編排</h3>
+            <p>以期數、專題與章節組織內容，讓每一篇文章都在一個完整的脈絡裡被閱讀與理解。</p>
+            <div class="panel-foot"><span>Eponym Reading</span><span>編排 / Editorial</span></div>
+          </div>
+          <div class="panel-body" role="tabpanel" id="panel-3" aria-labelledby="tab-3" hidden>
+            <span class="p-no">Page 03</span>
+            <h3>全螢幕版面呈現</h3>
+            <p>以整版的尺度呈現文字與影像，讓版面回到刊物該有的氣度與留白。</p>
+            <div class="panel-foot"><span>Eponym Reading</span><span>版面 / Fullscreen</span></div>
+          </div>
+          <div class="panel-body" role="tabpanel" id="panel-4" aria-labelledby="tab-4" hidden>
+            <span class="p-no">Page 04</span>
+            <h3>跨裝置閱讀</h3>
+            <p>手機、平板與桌機，版面自然調整。無論在哪裡翻閱，都是一致而完整的閱讀體驗。</p>
+            <div class="panel-foot"><span>Eponym Reading</span><span>裝置 / Anywhere</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="experience-close reveal" data-delay="2">
+        <p>每一次翻頁，都讓內容回到閱讀本身。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== OWNERSHIP / PULL QUOTE ===================== -->
+  <section class="ownership pad" aria-labelledby="own-title">
+    <div class="wrap">
+      <span class="kicker reveal">Ownership</span>
+      <blockquote class="pull reveal" data-delay="1" id="own-title" style="margin:22px 0 0;">
+        <span class="sr-only">你的內容，你的品牌</span>
+        <span aria-hidden="true">你的內容，<span class="em">你的品牌。</span></span>
+      </blockquote>
+
+      <div class="own-grid">
+        <ul class="own-list reveal" data-delay="1">
+          <li>不依賴社群演算法</li>
+          <li>不受平台流量波動影響</li>
+          <li>不被時間軸快速埋沒</li>
+          <li>將內容累積成長期資產</li>
+        </ul>
+        <div class="own-close reveal" data-delay="2">
+          <p>
+            因為真正重要的，不只是曝光。
+            <strong>而是留下屬於你的作品。</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FINAL CTA ===================== -->
+  <section class="final pad" aria-labelledby="final-title">
+    <div class="wrap">
+      <span class="sr-only">Final CTA</span>
+      <span class="kicker reveal">Final · 創刊</span>
+      <h2 id="final-title" class="reveal" data-delay="1">開始出版屬於你的名字</h2>
+      <p class="reveal" data-delay="2">
+        每個人都值得擁有一本自己的刊物。<br>
+        將知識、觀點與作品，出版成值得被閱讀與保存的內容。
+      </p>
+      <div class="reveal" data-delay="3">
+        <a class="btn" href="https://eponym.light2health.tw/zh-TW/login">
+          免費建立第一本雜誌 <span class="arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="foot-inner">
+    <span class="foot-mark">Eponym</span>
+    <span class="foot-colophon">擁有自己的雜誌 · Your Name, Your Publication</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var reduceMotion = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---- Reading progress bar ---- */
+  var progress = document.getElementById("progress");
+  var masthead = document.getElementById("masthead");
+  var ticking = false;
+
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(function () {
+      var doc = document.documentElement;
+      var scrollable = doc.scrollHeight - doc.clientHeight;
+      var pct = scrollable > 0 ? (doc.scrollTop || document.body.scrollTop) / scrollable : 0;
+      progress.style.width = (pct * 100).toFixed(2) + "%";
+      if ((window.pageYOffset || doc.scrollTop) > 24) {
+        masthead.classList.add("scrolled");
+      } else {
+        masthead.classList.remove("scrolled");
+      }
+      ticking = false;
+    });
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  /* ---- Scroll reveal ---- */
+  var reveals = Array.prototype.slice.call(document.querySelectorAll(".reveal"));
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    reveals.forEach(function (el) { el.classList.add("in"); });
+  } else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in");
+          io.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: "0px 0px -10% 0px", threshold: 0.12 });
+    reveals.forEach(function (el) {
+      if (el.classList.contains("in")) return;
+      io.observe(el);
+    });
+  }
+
+  /* ---- Page tabs (publishing experience) ---- */
+  var tablist = document.querySelector('[role="tablist"]');
+  if (tablist) {
+    var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"]'));
+
+    function selectTab(tab, setFocus) {
+      tabs.forEach(function (t) {
+        var selected = t === tab;
+        t.setAttribute("aria-selected", selected ? "true" : "false");
+        t.tabIndex = selected ? 0 : -1;
+        var panel = document.getElementById(t.getAttribute("aria-controls"));
+        if (panel) panel.hidden = !selected;
+      });
+      if (setFocus) tab.focus();
+    }
+
+    tabs.forEach(function (tab, i) {
+      tab.addEventListener("click", function () { selectTab(tab, false); });
+      tab.addEventListener("keydown", function (e) {
+        var idx = i;
+        if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+          idx = (i + 1) % tabs.length;
+        } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+          idx = (i - 1 + tabs.length) % tabs.length;
+        } else if (e.key === "Home") {
+          idx = 0;
+        } else if (e.key === "End") {
+          idx = tabs.length - 1;
+        } else {
+          return;
+        }
+        e.preventDefault();
+        selectTab(tabs[idx], true);
+      });
+    });
+  }
+})();
+</script>
+</body>
+</html>
