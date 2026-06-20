@@ -30,7 +30,7 @@ repository — the page now lives on its own here.
 Calls to action link to:
 
 ```
-https://eponym.light2health.tw/zh-TW/login
+https://dev.eponym.online/
 ```
 
 Edit that URL in `index.html` if the login path changes.
